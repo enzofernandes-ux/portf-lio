@@ -1,0 +1,40 @@
+{
+  "contact": {
+    "linkedin": "",
+    "github": "",
+    "whatsapp": "",
+    "email": ""
+  },
+  "projects": [
+    {
+      "tag": "PROJETO 01 — WEB",
+      "name": "[ Nome do projeto ]",
+      "description": "Descrição do projeto aqui. Substitua por um resumo curto do problema que ele resolve e como.",
+      "tech": "PYTHON · DJANGO · HTML · CSS · JAVASCRIPT",
+      "link": "",
+      "github": "",
+      "image": "",
+      "size": "wide"
+    },
+    {
+      "tag": "PROJETO 02 — DESKTOP",
+      "name": "[ Nome do projeto ]",
+      "description": "Descrição do projeto aqui.",
+      "tech": "C# · SQL SERVER",
+      "link": "",
+      "github": "",
+      "image": "",
+      "size": "narrow"
+    },
+    {
+      "tag": "PROJETO 03 — WEB",
+      "name": "[ Nome do projeto ]",
+      "description": "Descrição do projeto aqui.",
+      "tech": "HTML · CSS · JAVASCRIPT",
+      "link": "",
+      "github": "",
+      "image": "",
+      "size": "narrow"
+    }
+  ]
+}

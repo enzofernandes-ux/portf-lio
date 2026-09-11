@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel — Enzo Gabriel</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a; --bg-raised:#131311; --ink:#f2f1ec; --ink-dim:#8c8c86;
+    --line:#2a2a27; --line-strong:#3d3d39; --ok:#9fd6a6; --err:#e39a9a;
+    --mono:'IBM Plex Mono',monospace; --sans:'IBM Plex Sans',sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--ink);font-family:var(--sans);line-height:1.5;padding:40px 24px 120px;}
+  .wrap{max-width:840px;margin:0 auto;}
+  h1{font-size:1.7rem;font-weight:700;letter-spacing:-0.01em;}
+  h2{font-size:1.15rem;font-weight:600;margin-bottom:18px;}
+  .sub{color:var(--ink-dim);font-size:0.92rem;margin-top:8px;margin-bottom:40px;}
+  section{border:1px solid var(--line);padding:28px;margin-bottom:28px;}
+  label{display:block;font-family:var(--mono);font-size:11.5px;color:var(--ink-dim);margin-bottom:6px;letter-spacing:0.03em;}
+  input[type=text],input[type=url],input[type=password],textarea,select{
+    width:100%;background:var(--bg-raised);border:1px solid var(--line-strong);color:var(--ink);
+    padding:11px 12px;font-family:var(--sans);font-size:0.92rem;margin-bottom:16px;
+  }
+  textarea{resize:vertical;min-height:70px;}
+  input:focus,textarea:focus,select:focus{outline:1px solid var(--ink);}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:16px;}
+  @media(max-width:600px){.row{grid-template-columns:1fr;}}
+  button{
+    font-family:var(--mono);font-size:13px;background:var(--ink);color:var(--bg);
+    border:1px solid var(--ink);padding:12px 22px;cursor:pointer;transition:opacity .2s;
+  }
+  button:hover{opacity:0.8;}
+  button.ghost{background:transparent;color:var(--ink);}
+  button.danger{background:transparent;color:var(--err);border-color:var(--err);}
+  button:disabled{opacity:0.4;cursor:not-allowed;}
+  .status{font-family:var(--mono);font-size:12.5px;margin-top:14px;min-height:18px;}
+  .status.ok{color:var(--ok);}
+  .status.err{color:var(--err);}
+  .proj-item{border:1px solid var(--line);padding:18px;margin-bottom:14px;}
+  .proj-item h3{font-size:1rem;font-weight:600;margin-bottom:4px;}
+  .proj-item .meta{font-family:var(--mono);font-size:11px;color:var(--ink-dim);margin-bottom:10px;}
+  .proj-actions{display:flex;gap:10px;margin-top:10px;}
+  .proj-actions button{padding:8px 14px;font-size:12px;}
+  .hidden{display:none;}
+  .badge{font-family:var(--mono);font-size:11px;color:var(--ink-dim);border:1px solid var(--line-strong);padding:3px 8px;display:inline-block;margin-top:4px;}
+  .thumb-preview{width:100%;max-height:140px;object-fit:cover;margin-bottom:12px;border:1px solid var(--line);}
+  .notice{font-size:0.85rem;color:var(--ink-dim);line-height:1.6;}
+  .notice a{color:var(--ink);text-decoration:underline;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Painel do portfólio</h1>
+  <p class="sub">Gerencia os projetos e os contatos do site direto no GitHub. Tudo que você salvar aqui vira um commit no repositório e aparece no site em 1–2 minutos.</p>
+
+  <section id="connectSection">
+    <h2>1. Conexão com o GitHub</h2>
+    <div class="row">
+      <div><label>Usuário / organização</label><input type="text" id="ghOwner" placeholder="ex: enzofernandes-ux"></div>
+      <div><label>Nome do repositório</label><input type="text" id="ghRepo" placeholder="ex: Portf-lio-EG"></div>
+    </div>
+    <div class="row">
+      <div><label>Branch</label><input type="text" id="ghBranch" placeholder="main" value="main"></div>
+      <div><label>Personal Access Token</label><input type="password" id="ghToken" placeholder="ghp_..."></div>
+    </div>
+    <p class="notice">
+      Crie um token em <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">github.com/settings/tokens</a> →
+      "Generate new token (fine-grained)" → dê acesso apenas ao repositório do portfólio, com permissão
+      <strong>Contents: Read and write</strong>. O token fica salvo só neste navegador (localStorage), nunca é enviado a nenhum outro lugar além da API do GitHub.
+    </p>
+    <div style="margin-top:16px;">
+      <button id="btnConnect">Conectar</button>
+      <button class="ghost" id="btnForget">Esquecer dados salvos</button>
+    </div>
+    <div class="status" id="connectStatus"></div>
+  </section>
+
+  <div id="app" class="hidden">
+
+    <section>
+      <h2>2. Contato</h2>
+      <div class="row">
+        <div><label>LinkedIn (URL completa)</label><input type="url" id="cLinkedin" placeholder="https://linkedin.com/in/..."></div>
+        <div><label>GitHub (URL completa)</label><input type="url" id="cGithub" placeholder="https://github.com/..."></div>
+      </div>
+      <div class="row">
+        <div><label>WhatsApp (só números, com DDD e país)</label><input type="text" id="cWhatsapp" placeholder="5511999999999"></div>
+        <div><label>E-mail</label><input type="text" id="cEmail" placeholder="voce@email.com"></div>
+      </div>
+      <button id="btnSaveContact">Salvar contatos</button>
+      <div class="status" id="contactStatus"></div>
+    </section>
+
+    <section>
+      <h2>3. Projetos</h2>
+      <div id="projList"></div>
+
+      <h2 style="margin-top:30px;">Adicionar / editar projeto</h2>
+      <input type="hidden" id="pEditIndex" value="-1">
+      <div class="row">
+        <div><label>Etiqueta (ex: PROJETO 04 — WEB)</label><input type="text" id="pTag"></div>
+        <div><label>Tamanho do card</label>
+          <select id="pSize">
+            <option value="wide">Largo</option>
+            <option value="narrow">Estreito</option>
+            <option value="">Normal</option>
+          </select>
+        </div>
+      </div>
+      <label>Nome do projeto</label>
+      <input type="text" id="pName">
+      <label>Descrição</label>
+      <textarea id="pDescription"></textarea>
+      <label>Tecnologias (separadas por ·)</label>
+      <input type="text" id="pTech" placeholder="PYTHON · HTML · CSS">
+      <div class="row">
+        <div><label>Link do projeto</label><input type="url" id="pLink" placeholder="https://..."></div>
+        <div><label>Link do GitHub</label><input type="url" id="pGithubLink" placeholder="https://github.com/..."></div>
+      </div>
+      <label>Imagem do projeto</label>
+      <img id="pImagePreview" class="thumb-preview hidden">
+      <input type="file" id="pImageFile" accept="image/*">
+      <input type="hidden" id="pImagePath" value="">
+      <div style="margin-top:18px;display:flex;gap:10px;">
+        <button id="btnSaveProject">Salvar projeto</button>
+        <button class="ghost" id="btnCancelEdit">Cancelar edição</button>
+      </div>
+      <div class="status" id="projectStatus"></div>
+    </section>
+  </div>
+</div>
+
+<script>
+const CFG_KEY = 'eg_admin_config';
+const DATA_PATH = 'data/site-data.json';
+let cfg = null;         // {owner, repo, branch, token}
+let siteData = { contact:{}, projects:[] };
+let fileSha = null;     // sha do site-data.json atual (null = arquivo ainda não existe)
+
+// ---------- boot ----------
+window.addEventListener('DOMContentLoaded', () => {
+  const saved = localStorage.getItem(CFG_KEY);
+  if (saved) {
+    try {
+      cfg = JSON.parse(saved);
+      document.getElementById('ghOwner').value = cfg.owner || '';
+      document.getElementById('ghRepo').value = cfg.repo || '';
+      document.getElementById('ghBranch').value = cfg.branch || 'main';
+      document.getElementById('ghToken').value = cfg.token || '';
+    } catch(e) {}
+  }
+});
+
+document.getElementById('btnForget').addEventListener('click', () => {
+  localStorage.removeItem(CFG_KEY);
+  ['ghOwner','ghRepo','ghToken'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('ghBranch').value = 'main';
+  document.getElementById('app').classList.add('hidden');
+  setStatus('connectStatus', 'Dados locais apagados.', 'ok');
+});
+
+document.getElementById('btnConnect').addEventListener('click', connect);
+
+async function connect() {
+  const owner = document.getElementById('ghOwner').value.trim();
+  const repo = document.getElementById('ghRepo').value.trim();
+  const branch = document.getElementById('ghBranch').value.trim() || 'main';
+  const token = document.getElementById('ghToken').value.trim();
+
+  if (!owner || !repo || !token) {
+    setStatus('connectStatus', 'Preencha usuário, repositório e token.', 'err');
+    return;
+  }
+  cfg = { owner, repo, branch, token };
+  setStatus('connectStatus', 'Conectando...', '');
+
+  try {
+    const res = await gh(`/repos/${owner}/${repo}`);
+    if (!res.ok) throw new Error(res.status === 404 ? 'Repositório não encontrado.' : 'Token inválido ou sem permissão.');
+    localStorage.setItem(CFG_KEY, JSON.stringify(cfg));
+    setStatus('connectStatus', 'Conectado com sucesso.', 'ok');
+    document.getElementById('app').classList.remove('hidden');
+    await loadData();
+  } catch (e) {
+    setStatus('connectStatus', 'Erro: ' + e.message, 'err');
+  }
+}
+
+// ---------- GitHub API helpers ----------
+function gh(path, options = {}) {
+  return fetch(`https://api.github.com${path}`, {
+    ...options,
+    headers: {
+      'Authorization': `token ${cfg.token}`,
+      'Accept': 'application/vnd.github+json',
+      ...(options.headers || {})
+    }
+  });
+}
+
+async function loadData() {
+  try {
+    const res = await gh(`/repos/${cfg.owner}/${cfg.repo}/contents/${DATA_PATH}?ref=${cfg.branch}`);
+    if (res.status === 404) {
+      fileSha = null;
+      siteData = { contact:{linkedin:'',github:'',whatsapp:'',email:''}, projects:[] };
+    } else if (res.ok) {
+      const json = await res.json();
+      fileSha = json.sha;
+      siteData = JSON.parse(decodeURIComponent(escape(atob(json.content.replace(/\n/g,'')))));
+    } else {
+      throw new Error('Não foi possível carregar os dados atuais.');
+    }
+  } catch (e) {
+    setStatus('connectStatus', 'Aviso: ' + e.message, 'err');
+    siteData = { contact:{linkedin:'',github:'',whatsapp:'',email:''}, projects:[] };
+  }
+  fillContactForm();
+  renderProjectList();
+}
+
+async function saveData(commitMessage) {
+  const content = btoa(unescape(encodeURIComponent(JSON.stringify(siteData, null, 2))));
+  const body = { message: commitMessage, content, branch: cfg.branch };
+  if (fileSha) body.sha = fileSha;
+  const res = await gh(`/repos/${cfg.owner}/${cfg.repo}/contents/${DATA_PATH}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.message || 'Falha ao salvar.');
+  }
+  const json = await res.json();
+  fileSha = json.content.sha;
+}
+
+async function uploadImage(file) {
+  const base64 = await fileToBase64(file);
+  const safeName = file.name.replace(/[^a-zA-Z0-9.\-_]/g, '_');
+  const path = `assets/projetos/${Date.now()}-${safeName}`;
+  const res = await gh(`/repos/${cfg.owner}/${cfg.repo}/contents/${path}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ message: `Upload de imagem: ${safeName}`, content: base64, branch: cfg.branch })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(()=>({}));
+    throw new Error(err.message || 'Falha ao enviar imagem.');
+  }
+  const json = await res.json();
+  return json.content.download_url; // URL pública direto do GitHub (raw)
+}
+
+function fileToBase64(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result.split(',')[1]);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
+// ---------- Contato ----------
+function fillContactForm() {
+  const c = siteData.contact || {};
+  document.getElementById('cLinkedin').value = c.linkedin || '';
+  document.getElementById('cGithub').value = c.github || '';
+  document.getElementById('cWhatsapp').value = c.whatsapp || '';
+  document.getElementById('cEmail').value = c.email || '';
+}
+
+document.getElementById('btnSaveContact').addEventListener('click', async () => {
+  siteData.contact = {
+    linkedin: document.getElementById('cLinkedin').value.trim(),
+    github: document.getElementById('cGithub').value.trim(),
+    whatsapp: document.getElementById('cWhatsapp').value.trim(),
+    email: document.getElementById('cEmail').value.trim()
+  };
+  setStatus('contactStatus', 'Salvando...', '');
+  try {
+    await saveData('Atualiza informações de contato');
+    setStatus('contactStatus', 'Contatos salvos. O site atualiza em 1–2 minutos.', 'ok');
+  } catch (e) {
+    setStatus('contactStatus', 'Erro: ' + e.message, 'err');
+  }
+});
+
+// ---------- Projetos ----------
+function renderProjectList() {
+  const wrap = document.getElementById('projList');
+  wrap.innerHTML = '';
+  if (!siteData.projects.length) {
+    wrap.innerHTML = '<p class="notice">Nenhum projeto cadastrado ainda.</p>';
+    return;
+  }
+  siteData.projects.forEach((p, i) => {
+    const el = document.createElement('div');
+    el.className = 'proj-item';
+    el.innerHTML = `
+      <h3>${escapeHtml(p.name || '(sem nome)')}</h3>
+      <div class="meta">${escapeHtml(p.tag || '')} · ${escapeHtml(p.tech || '')}</div>
+      <span class="badge">${p.size === 'wide' ? 'Largo' : p.size === 'narrow' ? 'Estreito' : 'Normal'}</span>
+      <div class="proj-actions">
+        <button class="ghost" data-edit="${i}">Editar</button>
+        <button class="danger" data-del="${i}">Remover</button>
+      </div>`;
+    wrap.appendChild(el);
+  });
+  wrap.querySelectorAll('[data-edit]').forEach(b => b.addEventListener('click', () => editProject(+b.dataset.edit)));
+  wrap.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => deleteProject(+b.dataset.del)));
+}
+
+function editProject(i) {
+  const p = siteData.projects[i];
+  document.getElementById('pEditIndex').value = i;
+  document.getElementById('pTag').value = p.tag || '';
+  document.getElementById('pSize').value = p.size || '';
+  document.getElementById('pName').value = p.name || '';
+  document.getElementById('pDescription').value = p.description || '';
+  document.getElementById('pTech').value = p.tech || '';
+  document.getElementById('pLink').value = p.link || '';
+  document.getElementById('pGithubLink').value = p.github || '';
+  document.getElementById('pImagePath').value = p.image || '';
+  const preview = document.getElementById('pImagePreview');
+  if (p.image) { preview.src = p.image; preview.classList.remove('hidden'); }
+  else { preview.classList.add('hidden'); }
+  window.scrollTo({ top: document.getElementById('pTag').offsetTop - 40, behavior: 'smooth' });
+}
+
+async function deleteProject(i) {
+  if (!confirm('Remover este projeto do site?')) return;
+  siteData.projects.splice(i, 1);
+  try {
+    await saveData('Remove projeto');
+    renderProjectList();
+  } catch (e) {
+    setStatus('projectStatus', 'Erro: ' + e.message, 'err');
+  }
+}
+
+document.getElementById('btnCancelEdit').addEventListener('click', clearProjectForm);
+
+function clearProjectForm() {
+  document.getElementById('pEditIndex').value = -1;
+  ['pTag','pName','pDescription','pTech','pLink','pGithubLink','pImagePath'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pSize').value = 'wide';
+  document.getElementById('pImageFile').value = '';
+  document.getElementById('pImagePreview').classList.add('hidden');
+  setStatus('projectStatus', '', '');
+}
+
+document.getElementById('btnSaveProject').addEventListener('click', async () => {
+  const idx = +document.getElementById('pEditIndex').value;
+  const btn = document.getElementById('btnSaveProject');
+  btn.disabled = true;
+  setStatus('projectStatus', 'Salvando...', '');
+
+  try {
+    let imagePath = document.getElementById('pImagePath').value;
+    const file = document.getElementById('pImageFile').files[0];
+    if (file) {
+      setStatus('projectStatus', 'Enviando imagem...', '');
+      imagePath = await uploadImage(file);
+    }
+
+    const project = {
+      tag: document.getElementById('pTag').value.trim(),
+      name: document.getElementById('pName').value.trim(),
+      description: document.getElementById('pDescription').value.trim(),
+      tech: document.getElementById('pTech').value.trim(),
+      link: document.getElementById('pLink').value.trim(),
+      github: document.getElementById('pGithubLink').value.trim(),
+      image: imagePath,
+      size: document.getElementById('pSize').value
+    };
+
+    if (idx >= 0) siteData.projects[idx] = project;
+    else siteData.projects.push(project);
+
+    setStatus('projectStatus', 'Salvando dados...', '');
+    await saveData(idx >= 0 ? `Edita projeto: ${project.name}` : `Adiciona projeto: ${project.name}`);
+    renderProjectList();
+    clearProjectForm();
+    setStatus('projectStatus', 'Projeto salvo. O site atualiza em 1–2 minutos.', 'ok');
+  } catch (e) {
+    setStatus('projectStatus', 'Erro: ' + e.message, 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ---------- utils ----------
+function setStatus(id, msg, kind) {
+  const el = document.getElementById(id);
+  el.textContent = msg;
+  el.className = 'status' + (kind ? ' ' + kind : '');
+}
+function escapeHtml(str) {
+  return String(str).replace(/[&<>"']/g, s => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[s]));
+}
+</script>
+</body>
+</html>
